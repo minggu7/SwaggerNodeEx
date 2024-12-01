@@ -1,17 +1,20 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+const express = require('express');
+const { swaggerUi, specs } = require('./swagger/swagger');
+const userRouter = require('./routers/users/users');
+const app = express();
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Swagger UI 설정
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// 라우터 연결
+app.use('/users', userRouter);
+
+// Express 서버 설정
+app.get('/', function(req, res) {
+  res.send('Hello World!');
+});
+
+app.listen(3000, () => {
+  console.log('Express server is running on port 3000');
+  console.log('Swagger UI is available on http://localhost:3000/api-docs');
+});

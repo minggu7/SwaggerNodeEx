@@ -1,0 +1,180 @@
+스웨거 다운로드(깃클론)
+
+스웨거(Swagger) 설치 및 설정 가이드:
+1.초기 설치
+
+# 필수 패키지 설치
+npm install express
+npm install swagger-jsdoc swagger-ui-express --save-dev
+
+
+2. 프로젝트 구조 생성
+my-project/
+├── src/
+│   ├── routers/
+│   │   └── users/
+│   │       ├── index.js
+│   │       └── users.js
+│   ├── swagger/
+│   │   └── swagger.js
+│   └── index.js(서버 시작 파일. 참고로 src 경로까지 들어와서  node index.js)
+
+3.Swagger 설정 파일 생성(src/swagger/swagger.js)
+
+
+const swaggerUi = require("swagger-ui-express")
+const swaggereJsdoc = require("swagger-jsdoc")
+const path = require('path');
+
+const options = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      version: "1.0.0",
+      title: "API 문서",
+      description: "API 설명",
+    },
+    servers: [
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+  },
+  apis: [path.join(__dirname, '../routers/**/*.js')], // API 주석 파일 경로
+}
+
+const specs = swaggereJsdoc(options)
+
+module.exports = { swaggerUi, specs }
+
+4. 메인 서버 파일 생성 (src/index.js)
+const express = require('express');
+const { swaggerUi, specs } = require('./swagger/swagger');
+const userRouter = require('./routers/users/users');
+const app = express();
+
+// Swagger UI 설정
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+// 라우터 연결
+app.use('/users', userRouter);
+
+app.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000');
+  console.log('Swagger UI is available on http://localhost:3000/api-docs');
+});
+
+5.API 라우터 작성 (src/routers/users/users.js)
+const router = require("express").Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: 유저 관리 API
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: 유저 목록 조회
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유저 목록입니다."
+ */
+router.get("/", (req, res) => {
+  res.json({ message: "유저 목록입니다." });
+});
+
+module.exports = router;
+
+6. 서버 실행
+cd src
+node index.js
+
+7. Swagger UI 확인
+브라우저에서 http://localhost:3000/api-docs 접속
+
+8. 주요 Swagger 주석 문법
+/**
+ * @swagger
+ * /path:
+ *   get:              // HTTP 메서드
+ *     summary: 설명    // API 요약
+ *     tags: [태그명]   // API 그룹
+ *     parameters:     // 요청 파라미터
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:      // 응답 정의
+ *       200:
+ *         description: 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+
+
+
+PM2 설치
+1.PM2 전역 설치
+npm install -g pm2
+
+2. package.json에 스크립트 추가
+{
+  "scripts": {
+    "start": "pm2 start src/index.js --watch",
+    "stop": "pm2 stop all",
+    "restart": "pm2 restart all",
+    "delete": "pm2 delete all",
+    "logs": "pm2 logs",
+    "status": "pm2 status"
+  }
+}
+
+3.PM2 시작
+# package.json의 scripts 사용
+npm start
+
+# 또는 직접 PM2 명령어 사용
+pm2 start src/index.js --watch
+
+4. 주요 PM2 명령어
+# 상태 확인
+pm2 status
+
+# 로그 보기
+pm2 logs
+
+# 모든 프로세스 재시작
+pm2 restart all
+
+# 특정 프로세스 재시작
+pm2 restart index
+
+# 모든 프로세스 중지
+pm2 stop all
+
+# 모든 프로세스 삭제
+pm2 delete all
+
+# 프로세스 모니터링
+pm2 monit
+
+npm run stop
